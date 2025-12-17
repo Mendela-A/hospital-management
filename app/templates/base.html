@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Облік пацієнтів{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Навігація -->
+    {% if current_user.is_authenticated %}
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex space-x-4">
+                    <a href="{{ url_for('patients.index') }}" class="hover:bg-blue-700 px-3 py-2 rounded">Пацієнти</a>
+                    <a href="{{ url_for('patients.add') }}" class="hover:bg-blue-700 px-3 py-2 rounded">Додати пацієнта</a>
+                    {% if current_user.is_admin() %}
+                    <a href="{{ url_for('admin.users') }}" class="hover:bg-blue-700 px-3 py-2 rounded">Користувачі</a>
+                    {% endif %}
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm">{{ current_user.username }} 
+                        {% if current_user.is_admin() %}
+                        <span class="bg-yellow-500 text-xs px-2 py-1 rounded">Адмін</span>
+                        {% endif %}
+                    </span>
+                    <a href="{{ url_for('auth.logout') }}" class="hover:bg-blue-700 px-3 py-2 rounded">Вийти</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Flash повідомлення -->
+    <div class="container mx-auto px-4 mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="mb-4 p-4 rounded {% if category == 'success' %}bg-green-100 text-green-800{% elif category == 'danger' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Контент -->
+    <main class="container mx-auto px-4 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

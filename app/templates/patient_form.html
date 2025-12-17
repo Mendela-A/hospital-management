@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ title }}</h1>
+        
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    {{ form.admission_date.label(class="block text-gray-700 font-semibold mb-2") }}
+                    {{ form.admission_date(class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                    {% if form.admission_date.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.admission_date.errors[0] }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    {{ form.discharge_date.label(class="block text-gray-700 font-semibold mb-2") }}
+                    {{ form.discharge_date(class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                    {% if form.discharge_date.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.discharge_date.errors[0] }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                {{ form.full_name.label(class="block text-gray-700 font-semibold mb-2") }}
+                {{ form.full_name(class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                {% if form.full_name.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.full_name.errors[0] }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    {{ form.department.label(class="block text-gray-700 font-semibold mb-2") }}
+                    {{ form.department(class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                    {% if form.department.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.department.errors[0] }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    {{ form.doctor.label(class="block text-gray-700 font-semibold mb-2") }}
+                    {{ form.doctor(class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                    {% if form.doctor.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.doctor.errors[0] }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                {{ form.history_number.label(class="block text-gray-700 font-semibold mb-2") }}
+                {{ form.history_number(class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                {% if form.history_number.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.history_number.errors[0] }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                {{ form.comment.label(class="block text-gray-700 font-semibold mb-2") }}
+                {{ form.comment(class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500", rows="4") }}
+                {% if form.comment.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.comment.errors[0] }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="mb-6 flex items-center">
+                {{ form.is_deceased(class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500") }}
+                {{ form.is_deceased.label(class="ml-2 text-gray-700 font-semibold") }}
+            </div>
+            
+            <div class="flex gap-4">
+                <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                    Зберегти
+                </button>
+                <a href="{{ url_for('patients.index') }}" class="flex-1 text-center bg-gray-300 text-gray-700 py-2 rounded hover:bg-gray-400">
+                    Скасувати
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

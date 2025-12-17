@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Список пацієнтів{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Пацієнти за поточний місяць</h1>
+        <a href="{{ url_for('patients.add') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            + Додати пацієнта
+        </a>
+    </div>
+
+    <!-- Фільтри та пошук -->
+    <form method="GET" class="mb-6 bg-gray-50 p-4 rounded">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input type="text" name="search" placeholder="Пошук за ПІБ або № історії" 
+                   value="{{ request.args.get('search', '') }}"
+                   class="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            
+            <select name="department" class="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Всі відділення</option>
+                {% for dept in departments %}
+                <option value="{{ dept }}" {% if request.args.get('department') == dept %}selected{% endif %}>{{ dept }}</option>
+                {% endfor %}
+            </select>
+            
+            <select name="doctor" class="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Всі лікарі</option>
+                {% for doc in doctors %}
+                <option value="{{ doc }}" {% if request.args.get('doctor') == doc %}selected{% endif %}>{{ doc }}</option>
+                {% endfor %}
+            </select>
+            
+            <select name="status" class="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Всі статуси</option>
+                <option value="alive" {% if request.args.get('status') == 'alive' %}selected{% endif %}>Живі</option>
+                <option value="deceased" {% if request.args.get('status') == 'deceased' %}selected{% endif %}>Померлі</option>
+            </select>
+        </div>
+        <div class="mt-4 flex gap-2">
+            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Фільтрувати</button>
+            <a href="{{ url_for('patients.index') }}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400">Скинути</a>
+        </div>
+    </form>
+
+    <!-- Таблиця -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Дата поступлення</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Дата виписки</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">ПІБ</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Відділення</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Лікар</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">№ Історії</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Статус</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr class="border-b hover:bg-gray-50 {% if patient.is_deceased %}bg-red-50{% endif %}">
+                    <td class="px-4 py-3 text-sm">{{ patient.admission_date.strftime('%d.%m.%Y') }}</td>
+                    <td class="px-4 py-3 text-sm">
+                        {% if patient.discharge_date %}
+                            {{ patient.discharge_date.strftime('%d.%m.%Y') }}
+                        {% else %}
+                            <span class="text-gray-400">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-sm font-medium">{{ patient.full_name }}</td>
+                    <td class="px-4 py-3 text-sm">{{ patient.department }}</td>
+                    <td class="px-4 py-3 text-sm">{{ patient.doctor }}</td>
+                    <td class="px-4 py-3 text-sm">{{ patient.history_number }}</td>
+                    <td class="px-4 py-3 text-sm">
+                        {% if patient.is_deceased %}
+                            <span class="bg-red-500 text-white px-2 py-1 rounded text-xs">Помер</span>
+                        {% else %}
+                            <span class="bg-green-500 text-white px-2 py-1 rounded text-xs">Живий</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        <div class="flex gap-2">
+                            <a href="{{ url_for('patients.edit', id=patient.id) }}" 
+                               class="text-blue-600 hover:text-blue-800">Редагувати</a>
+                            {% if current_user.is_admin() %}
+                            <form method="POST" action="{{ url_for('patients.delete', id=patient.id) }}" 
+                                  onsubmit="return confirm('Ви впевнені, що хочете видалити цього пацієнта?');">
+                                <button type="submit" class="text-red-600 hover:text-red-800">Видалити</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                        Пацієнтів не знайдено
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Пагінація -->
+    {% if pagination.pages > 1 %}
+    <div class="mt-6 flex justify-center gap-2">
+        {% if pagination.has_prev %}
+            <a href="{{ url_for('patients.index', page=pagination.prev_num, search=request.args.get('search', ''), department=request.args.get('department', ''), doctor=request.args.get('doctor', ''), status=request.args.get('status', '')) }}" 
+               class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Попередня</a>
+        {% endif %}
+        
+        <span class="px-4 py-2 bg-gray-100 rounded">Сторінка {{ pagination.page }} з {{ pagination.pages }}</span>
+        
+        {% if pagination.has_next %}
+            <a href="{{ url_for('patients.index', page=pagination.next_num, search=request.args.get('search', ''), department=request.args.get('department', ''), doctor=request.args.get('doctor', ''), status=request.args.get('status', '')) }}" 
+               class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Наступна</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
