@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, DateField, TextAreaField, SelectField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, Length, ValidationError
+from wtforms import StringField, PasswordField, DateField, TextAreaField, SelectField, BooleanField, SubmitField, IntegerField
+from wtforms.validators import DataRequired, Length, ValidationError, NumberRange
 from app.models import User, Patient
+from datetime import datetime
 
 class LoginForm(FlaskForm):
     username = StringField('Ім\'я користувача', validators=[DataRequired(), Length(min=3, max=80)])
@@ -46,3 +47,32 @@ class PatientForm(FlaskForm):
             patient = Patient.query.filter_by(history_number=history_number.data).first()
             if patient:
                 raise ValidationError('Цей номер історії вже використовується.')
+
+
+class ExportForm(FlaskForm):
+    month = SelectField(
+        'Місяць',
+        choices=[
+            (1, 'Січень'), (2, 'Лютий'), (3, 'Березень'), (4, 'Квітень'),
+            (5, 'Травень'), (6, 'Червень'), (7, 'Липень'), (8, 'Серпень'),
+            (9, 'Вересень'), (10, 'Жовтень'), (11, 'Листопад'), (12, 'Грудень')
+        ],
+        coerce=int,
+        validators=[DataRequired()]
+    )
+    year = IntegerField(
+        'Рік',
+        validators=[
+            DataRequired(),
+            NumberRange(min=2020, max=2030, message='Рік має бути між 2020 та 2030')
+        ]
+    )
+    submit = SubmitField('Експортувати')
+    
+    def __init__(self, *args, **kwargs):
+        super(ExportForm, self).__init__(*args, **kwargs)
+        # Встановлення поточного місяця та року за замовчуванням
+        if not self.month.data:
+            self.month.data = datetime.now().month
+        if not self.year.data:
+            self.year.data = datetime.now().year

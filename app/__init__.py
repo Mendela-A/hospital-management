@@ -23,10 +23,12 @@ def create_app(config_class=Config):
     from app.routes.auth import auth
     from app.routes.patients import patients
     from app.routes.admin import admin
+    from app.routes.export import export_bp
     
     app.register_blueprint(auth)
     app.register_blueprint(patients)
     app.register_blueprint(admin)
+    app.register_blueprint(export_bp)
     
     return app
 
