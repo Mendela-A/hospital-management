@@ -1,0 +1,58 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist
+build
+venv
+env
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov/
+
+# Database (не копіюємо в образ, використовуємо volume)
+*.db
+*.sqlite
+*.sqlite3
+
+# Excel
+*.xlsx
+*.xls
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+README.md
+*.md
+
+# SSL certificates (створюємо окремо)
+nginx/ssl/
+
+# Backup files
+*.bak
+*.tmp
+backups/

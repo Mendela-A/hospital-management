@@ -37,6 +37,7 @@ instance/
 *.sqlite
 *.sqlite3
 hospital.db
+hospital.db.backup
 
 # IDE
 .vscode/
@@ -49,11 +50,13 @@ hospital.db
 # Logs
 *.log
 logs/
+nginx/logs/
 
 # Environment variables
 .env
 .env.local
 .flaskenv
+.env.production
 
 # Excel файли (якщо не хочеш зберігати у git)
 *.xlsx
@@ -76,3 +79,30 @@ htmlcov/
 # Backup files
 *.sql
 backups/
+
+# Docker
+# Зберігаємо Dockerfile та docker-compose.yml, але ігноруємо SSL сертифікати
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt
+nginx/ssl/*.csr
+
+# Docker volumes та дані
+docker-volumes/
+.docker/
+
+# Nginx logs (якщо пробрасуються в проєкт)
+nginx/access.log
+nginx/error.log
+
+# Sensitive data
+secrets/
+*.secret
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+
+# Compiled static files
+/static/compiled/
+/static/.webassets-cache

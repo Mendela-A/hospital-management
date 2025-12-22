@@ -1,20 +1,26 @@
-# Use official Python runtime as a parent image
 FROM python:3.11-slim
 
-# Set working dir
+# Встановлення системних залежностей
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Робоча директорія
 WORKDIR /app
 
-# Copy dependencies file
+# Копіювання залежностей
 COPY requirements.txt .
-
-# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the code
+# Копіювання коду додатку
 COPY . .
 
-# Expose port (якщо web-сервер слухає)
-EXPOSE 8000
+# Змінні середовища
+ENV FLASK_APP=run.py
+ENV PYTHONUNBUFFERED=1
 
-# Start the app
+# Відкриття порту
+EXPOSE 5000
+
+# Команда запуску
 CMD ["python", "run.py"]
