@@ -1,12 +1,12 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file
+from flask import Blueprint, render_template, redirect, url_for, flash, send_file
 from flask_login import login_required, current_user
-from datetime import datetime
+from app.forms import ExportForm
+from app.models import Patient
+from app import db
 from functools import wraps
+from datetime import datetime
 import pandas as pd
 from io import BytesIO
-from app import db
-from app.models import Patient
-from app.forms import ExportForm
 
 export_bp = Blueprint('export', __name__, url_prefix='/export')
 
@@ -19,36 +19,78 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 @export_bp.route('/', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def export_form():
-    form = ExportForm()
-    return render_template('export_form.html', form=form)
-
-@export_bp.route('/download', methods=['POST'])
-@login_required
-@admin_required
-def download():
+    """Відображення форми експорту"""
     form = ExportForm()
     
     if form.validate_on_submit():
-        month = form.month.data
-        year = form.year.data
+        # Отримуємо дані з форми
+        month = int(form.month.data)
+        year = int(form.year.data)
+        department = form.department.data.strip() if form.department.data else None
+        doctor = form.doctor.data.strip() if form.doctor.data else None
+        include_deceased = form.include_deceased.data
         
-        # Фільтрація пацієнтів за місяцем і роком
+        # Перенаправляємо на експорт з параметрами
+        return redirect(url_for('export.export_data', 
+                              month=month, 
+                              year=year,
+                              department=department,
+                              doctor=doctor,
+                              include_deceased=include_deceased))
+    
+    return render_template('export_form.html', form=form)
+
+
+@export_bp.route('/download')
+@login_required
+@admin_required
+def export_data():
+    """Експорт даних пацієнтів в Excel"""
+    from flask import request
+    
+    # Отримуємо параметри з URL
+    month = request.args.get('month', type=int)
+    year = request.args.get('year', type=int)
+    department = request.args.get('department', '')
+    doctor = request.args.get('doctor', '')
+    include_deceased = request.args.get('include_deceased', 'True') == 'True'
+    
+    # Перевірка обов'язкових параметрів
+    if not month or not year:
+        flash('Не вказано місяць або рік для експорту.', 'danger')
+        return redirect(url_for('export.export_form'))
+    
+    try:
+        # Формуємо запит до бази даних
         query = Patient.query.filter(
             db.extract('month', Patient.admission_date) == month,
             db.extract('year', Patient.admission_date) == year
-        ).order_by(Patient.admission_date.desc())
+        )
         
+        # Додаткові фільтри
+        if department:
+            query = query.filter(Patient.department.ilike(f'%{department}%'))
+        if doctor:
+            query = query.filter(Patient.doctor.ilike(f'%{doctor}%'))
+        if not include_deceased:
+            query = query.filter(Patient.is_deceased == False)
+        
+        # Сортування
+        query = query.order_by(Patient.admission_date.desc())
+        
+        # Отримуємо дані
         patients = query.all()
         
         if not patients:
-            flash(f'Дані за {month:02d}.{year} не знайдено.', 'warning')
+            flash(f'Не знайдено пацієнтів за {month}/{year}.', 'warning')
             return redirect(url_for('export.export_form'))
         
-        # Створення DataFrame
+        # Підготовка даних для Excel
         data = []
         for p in patients:
             data.append({
@@ -58,19 +100,25 @@ def download():
                 'Відділення': p.department,
                 'Лікар': p.doctor,
                 '№ Історії': p.history_number,
+                'Коментар': p.comment or '',
                 'Статус': 'Помер' if p.is_deceased else 'Живий',
-                'Коментар': p.comment if p.comment else ''
+                'Створено': p.created_at.strftime('%d.%m.%Y %H:%M'),
+                'Оновлено': p.updated_at.strftime('%d.%m.%Y %H:%M')
             })
         
+        # Створюємо DataFrame
         df = pd.DataFrame(data)
         
-        # Створення Excel файлу в пам'яті
+        # Створюємо Excel файл
         output = BytesIO()
+        
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, index=False, sheet_name='Пацієнти')
             
-            # Налаштування ширини колонок
+            # Отримуємо worksheet для форматування
             worksheet = writer.sheets['Пацієнти']
+            
+            # Автоматичне налаштування ширини колонок
             for column in worksheet.columns:
                 max_length = 0
                 column_letter = column[0].column_letter
@@ -85,8 +133,14 @@ def download():
         
         output.seek(0)
         
-        # Формування назви файлу
-        filename = f'patients_{year}_{month:02d}.xlsx'
+        # Назва файлу
+        month_names = [
+            'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
+            'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'
+        ]
+        filename = f'Пацієнти_{month_names[month-1]}_{year}.xlsx'
+        
+        flash(f'Експортовано {len(patients)} пацієнтів.', 'success')
         
         return send_file(
             output,
@@ -94,6 +148,7 @@ def download():
             as_attachment=True,
             download_name=filename
         )
-    
-    flash('Помилка при експорті даних.', 'danger')
-    return redirect(url_for('export.export_form'))
+        
+    except Exception as e:
+        flash(f'Помилка при експорті: {str(e)}', 'danger')
+        return redirect(url_for('export.export_form'))

@@ -3,62 +3,82 @@
 {% block title %}Експорт даних{% endblock %}
 
 {% block content %}
-<div class="max-w-xl mx-auto">
+<div class="max-w-2xl mx-auto">
     <div class="bg-white rounded-lg shadow-lg p-8">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">📊 Експорт даних у Excel</h1>
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Експорт даних пацієнтів в Excel</h1>
         
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p class="text-sm text-blue-800">
-                <strong>ℹ️ Інформація:</strong> Виберіть місяць та рік для експорту даних пацієнтів у форматі Excel.
-                Будуть експортовані всі пацієнти, дата поступлення яких відповідає вибраному періоду.
-            </p>
-        </div>
-        
-        <form method="POST" action="{{ url_for('export.download') }}">
+        <form method="POST" action="{{ url_for('export.export_form') }}">
             {{ form.hidden_tag() }}
             
-            <div class="mb-6">
-                {{ form.month.label(class="block text-gray-700 font-semibold mb-2") }}
-                {{ form.month(class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500") }}
-                {% if form.month.errors %}
-                    <p class="text-red-500 text-sm mt-1">{{ form.month.errors[0] }}</p>
-                {% endif %}
+            <div class="mb-6 p-4 bg-blue-50 rounded border border-blue-200">
+                <p class="text-sm text-blue-800">
+                    <strong>Інструкція:</strong> Оберіть місяць і рік для експорту даних. 
+                    Додатково можна фільтрувати за відділенням та лікарем.
+                </p>
             </div>
             
-            <div class="mb-6">
-                {{ form.year.label(class="block text-gray-700 font-semibold mb-2") }}
-                {{ form.year(class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="2024") }}
-                {% if form.year.errors %}
-                    <p class="text-red-500 text-sm mt-1">{{ form.year.errors[0] }}</p>
-                {% endif %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    {{ form.month.label(class="block text-gray-700 font-semibold mb-2") }}
+                    {{ form.month(class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                    {% if form.month.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.month.errors[0] }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    {{ form.year.label(class="block text-gray-700 font-semibold mb-2") }}
+                    {{ form.year(class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500") }}
+                    {% if form.year.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.year.errors[0] }}</p>
+                    {% endif %}
+                </div>
             </div>
             
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-                <h3 class="font-semibold text-gray-700 mb-2">📋 Експортовані дані включають:</h3>
-                <ul class="text-sm text-gray-600 space-y-1">
-                    <li>• Дата поступлення</li>
-                    <li>• Дата виписки</li>
-                    <li>• ПІБ пацієнта</li>
-                    <li>• Відділення</li>
-                    <li>• Лікар</li>
-                    <li>• Номер історії хвороби</li>
-                    <li>• Статус (Живий/Помер)</li>
-                    <li>• Коментарі</li>
-                </ul>
+            <div class="mb-4 p-4 bg-gray-50 rounded border border-gray-200">
+                <h3 class="font-semibold text-gray-700 mb-3">Додаткові фільтри (необов'язково)</h3>
+                
+                <div class="mb-4">
+                    {{ form.department.label(class="block text-gray-700 font-semibold mb-2") }}
+                    {{ form.department(class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="Залиште порожнім для всіх відділень") }}
+                    {% if form.department.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.department.errors[0] }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    {{ form.doctor.label(class="block text-gray-700 font-semibold mb-2") }}
+                    {{ form.doctor(class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500", placeholder="Залиште порожнім для всіх лікарів") }}
+                    {% if form.doctor.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.doctor.errors[0] }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center">
+                    {{ form.include_deceased(class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500") }}
+                    {{ form.include_deceased.label(class="ml-2 text-gray-700 font-semibold") }}
+                </div>
             </div>
             
             <div class="flex gap-4">
-                <button type="submit" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 font-semibold flex items-center justify-center gap-2">
+                <button type="submit" class="flex-1 bg-green-600 text-white py-3 rounded hover:bg-green-700 font-semibold flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
-                    Завантажити Excel
+                    Експортувати в Excel
                 </button>
-                <a href="{{ url_for('patients.index') }}" class="flex-1 text-center bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition duration-200 font-semibold">
+                <a href="{{ url_for('patients.index') }}" class="flex-1 text-center bg-gray-300 text-gray-700 py-3 rounded hover:bg-gray-400 font-semibold">
                     Скасувати
                 </a>
             </div>
         </form>
+        
+        <div class="mt-6 p-4 bg-yellow-50 rounded border border-yellow-200">
+            <p class="text-sm text-yellow-800">
+                <strong>💡 Порада:</strong> Експортований файл буде містити всі дані пацієнтів за обраний період 
+                у зручному форматі для перегляду та аналізу в Excel.
+            </p>
+        </div>
     </div>
 </div>
 {% endblock %}
