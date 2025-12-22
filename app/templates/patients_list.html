@@ -6,9 +6,16 @@
 <div class="bg-white rounded-lg shadow-lg p-6">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Пацієнти за поточний місяць</h1>
-        <a href="{{ url_for('patients.add') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-            + Додати пацієнта
-        </a>
+        <div class="flex gap-2">
+            {% if current_user.is_admin() %}
+            <a href="{{ url_for('export.export_form') }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                📊 Експорт в Excel
+            </a>
+            {% endif %}
+            <a href="{{ url_for('patients.add') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                + Додати пацієнта
+            </a>
+        </div>
     </div>
 
     <!-- Фільтри та пошук -->
@@ -76,12 +83,7 @@
                     <td class="px-4 py-3 text-sm">{{ patient.history_number }}</td>
                     <td class="px-4 py-3 text-sm">
                         {% if patient.is_deceased %}
-                            <div class="flex flex-col">
-                                <span class="bg-red-500 text-white px-2 py-1 rounded text-xs mb-1">Помер</span>
-                                {% if patient.death_date %}
-                                    <span class="text-xs text-red-600">{{ patient.death_date.strftime('%d.%m.%Y') }}</span>
-                                {% endif %}
-                            </div>
+                            <span class="bg-red-500 text-white px-2 py-1 rounded text-xs">Помер</span>
                         {% else %}
                             <span class="bg-green-500 text-white px-2 py-1 rounded text-xs">Живий</span>
                         {% endif %}
