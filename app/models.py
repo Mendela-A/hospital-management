@@ -38,6 +38,7 @@ class Patient(db.Model):
     history_number = db.Column(db.String(50), unique=True, nullable=False)
     comment = db.Column(db.Text, nullable=True)
     is_deceased = db.Column(db.Boolean, default=False)
+    death_date = db.Column(db.Date, nullable=True)  # НОВЕ ПОЛЕ
     
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

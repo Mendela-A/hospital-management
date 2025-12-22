@@ -88,6 +88,7 @@ def add():
             history_number=form.history_number.data,
             comment=form.comment.data,
             is_deceased=form.is_deceased.data,
+            death_date=form.death_date.data if form.is_deceased.data else None,  # ОНОВЛЕНО
             created_by=current_user.id
         )
         db.session.add(patient)
@@ -112,6 +113,7 @@ def edit(id):
         patient.history_number = form.history_number.data
         patient.comment = form.comment.data
         patient.is_deceased = form.is_deceased.data
+        patient.death_date = form.death_date.data if form.is_deceased.data else None  # ОНОВЛЕНО
         patient.updated_at = datetime.utcnow()
         
         db.session.commit()
@@ -127,6 +129,7 @@ def edit(id):
         form.history_number.data = patient.history_number
         form.comment.data = patient.comment
         form.is_deceased.data = patient.is_deceased
+        form.death_date.data = patient.death_date  # ОНОВЛЕНО
     
     return render_template('patient_form.html', form=form, title='Редагувати пацієнта')
 

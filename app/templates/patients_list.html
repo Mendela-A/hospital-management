@@ -76,7 +76,12 @@
                     <td class="px-4 py-3 text-sm">{{ patient.history_number }}</td>
                     <td class="px-4 py-3 text-sm">
                         {% if patient.is_deceased %}
-                            <span class="bg-red-500 text-white px-2 py-1 rounded text-xs">Помер</span>
+                            <div class="flex flex-col">
+                                <span class="bg-red-500 text-white px-2 py-1 rounded text-xs mb-1">Помер</span>
+                                {% if patient.death_date %}
+                                    <span class="text-xs text-red-600">{{ patient.death_date.strftime('%d.%m.%Y') }}</span>
+                                {% endif %}
+                            </div>
                         {% else %}
                             <span class="bg-green-500 text-white px-2 py-1 rounded text-xs">Живий</span>
                         {% endif %}
